@@ -140,6 +140,8 @@ struct HfCandidateSelectorD0 {
   Configurable<double> cpaMin{"cpaMin", 0.98, "Min. cosine of pointing angle"};
   Configurable<double> massWindow{"massWindow", 0.4, "Half-width of the invariant-mass window"};
 
+  Configurable<double> decayLengthCut{"decayLengthCut",0.2, "Cut on the decay length"};
+
   HfHelper hfHelper;
   TrackSelectorPi selectorPion;
   TrackSelectorKa selectorKaon;
@@ -167,6 +169,10 @@ struct HfCandidateSelectorD0 {
     }
     // cosine of pointing angle
     if (candidate.cpa() < cpaMin) {
+      return false;
+    }
+
+    if (candidate.decayLength() < decayLengthCut){
       return false;
     }
     return true;
@@ -279,7 +285,7 @@ struct HfTaskD0 {
   HfHelper hfHelper;
 
   Partition<soa::Join<aod::HfCandProng2, aod::HfSelCandidateD0>> selectedD0Candidates = aod::hf_selcandidate_d0::isSelD0 >= selectionFlagD0 || aod::hf_selcandidate_d0::isSelD0bar >= selectionFlagD0bar;
-
+  
   HistogramRegistry registry{
     "registry",
     {}};
@@ -292,11 +298,18 @@ struct HfTaskD0 {
     registry.add("hPtCand", strTitle + ";" + strPt + ";" + strEntries, {HistType::kTH1F, {{100, 0., 10.}}});
     registry.add("hMass", strTitle + ";" + "inv. mass (#pi K) (GeV/#it{c}^{2})" + ";" + strEntries, {HistType::kTH1F, {{500, 0., 5.}}});
     registry.add("hCpaVsPtCand", strTitle + ";" + "cosine of pointing angle" + ";" + strPt + ";" + strEntries, {HistType::kTH2F, {{110, -1.1, 1.1}, {100, 0., 10.}}});
+
+    AxisSpec phiAxis = {100, 0., 2. * M_PI};
+    registry.add("hPhi","Candidate azimuthal angle",{HistType::kTH1F, {phiAxis}});
+    registry.add("hDecPt","Decay length in function of p_{T}",{HistType::kTH2F, {{150,0,0.5}, {100, 0., 10.}}});
+    registry.add("hDecayLengthXY","Decay length in XY plane;decay length xy (cm)",{HistType::kTH1F, {{150,0.,10.}}});
+
   }
 
   void process(soa::Join<aod::HfCandProng2, aod::HfSelCandidateD0> const& candidates)
   {
     for (const auto& candidate : selectedD0Candidates) {
+      
       if (candidate.isSelD0() >= selectionFlagD0) {
         registry.fill(HIST("hMass"), hfHelper.invMassD0ToPiK(candidate));
       }
@@ -305,6 +318,9 @@ struct HfTaskD0 {
       }
       registry.fill(HIST("hPtCand"), candidate.pt());
       registry.fill(HIST("hCpaVsPtCand"), candidate.cpa(), candidate.pt());
+      registry.fill(HIST("hPhi"), RecoDecay::phi(candidate.px(), candidate.py()));
+      registry.fill(HIST("hDecPt"), candidate.decayLength(), candidate.pt());
+      registry.fill(HIST("hDecayLengthXY"), candidate.decayLengthXY());
     }
   }
 };

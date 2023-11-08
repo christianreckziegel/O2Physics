@@ -39,6 +39,9 @@ struct DerivedBasicConsumer {
     }
     return deltaPhi;
   }
+  
+  // Filtering
+  Filter collZfilter = nabs(aod::collision::posZ) < 10.0f;
 
   // Histogram registry: an object to hold your histograms
   HistogramRegistry histos{"histos", {}, OutputObjHandlingPolicy::AnalysisObject};
@@ -47,12 +50,25 @@ struct DerivedBasicConsumer {
   {
     // define axes you want to use
     const AxisSpec axisCounter{1, 0, +1, ""};
+    const AxisSpec axisEta{30, -1.5, +1.5, "#eta"};
+    const AxisSpec axisPt{500, 0, 10, "p_{T}"};
+    const AxisSpec axisZVert{1, 0, 1, "Counts"};
+
+    // define histograms
     histos.add("eventCounter", "eventCounter", kTH1F, {axisCounter});
+    histos.add("etaHistogram", "etaHistogram", kTH1F, {axisEta});
+    histos.add("ptHistogram", "ptHistogram", kTH1F, {axisPt});
+    histos.add("eventVertexZ", "eventVertexZ", kTH1F, {axisZVert});
   }
 
-  void process(aod::DrCollision const& collision)
+  void process(soa::Filtered<aod::DrCollisions>::iterator const& collision, aod::DrTracks const& tracks)
   {
     histos.fill(HIST("eventCounter"), 0.5);
+    histos.fill(HIST("eventVertexZ"), collision.posZ());
+    for(auto const& track : tracks){
+      histos.fill(HIST("etaHistogram"), track.eta());
+      histos.fill(HIST("ptHistogram"), track.pt());
+    }
   }
 };
 

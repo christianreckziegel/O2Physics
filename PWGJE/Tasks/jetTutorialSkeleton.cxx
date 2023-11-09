@@ -85,11 +85,39 @@ struct JetTutorialSkeletonTask {
 
   void processCollisions(aod::JCollision const& collision, aod::JTracks const& tracks)
   {
+    /*registry.fill(HIST("h_collisions"),0.5);
+    if(!JetDerivedDataUtilities::selectCollision(collision, eventSelection)){
+      return;
+    }
+    registry.fill(HIST("h_collisions"),1.5);
+    for(auto const& track : tracks){
+      if(!JetDerivedDataUtilities::selectCollision(track, trackSelection)){
+        continue;
+      }
+      registry.fill(HIST("h_track_pt"),track.pt());
+      registry.fill(HIST("h_track_eta"),track.eta());
+      registry.fill(HIST("h_track_phi"),track.phi());
+    }*/
   }
   PROCESS_SWITCH(JetTutorialSkeletonTask, processCollisions, "process self contained collisions", true);
 
   void processCollisionsWithExternalTracks(aod::JCollision const& collision, soa::Join<aod::JTracks, aod::JTrackPIs> const& tracks, soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksDCA, aod::TrackSelection> const& originalTracks)
   {
+    /*registry.fill(HIST("h_collisions"),0.5);
+    if(!JetDerivedDataUtilities::selectCollision(collision, eventSelection)){
+      return;
+    }
+    registry.fill(HIST("h_collisions"),1.5);
+    for(auto const& track : tracks){
+      if(!JetDerivedDataUtilities::selectCollision(track, trackSelection)){
+        continue;
+      }
+      auto originalTrack = track.track_as<soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksDCA, aod::TrackSelection>>();
+      registry.fill(HIST("h_track_chi2PerCluster"),originalTrack.tpcChi2NCl());
+      registry.fill(HIST("h_track_pt"),track.pt());
+      registry.fill(HIST("h_track_eta"),track.eta());
+      registry.fill(HIST("h_track_phi"),track.phi());
+    }*/
   }
   PROCESS_SWITCH(JetTutorialSkeletonTask, processCollisionsWithExternalTracks, "process non self contained collisions", true);
 
